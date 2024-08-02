@@ -1,0 +1,13 @@
+body {
+    background-color: #2C2C2C; /* Dark gray background */
+    color: #E0E0E0; /* Softer off-white text color */
+    font-family: Arial, sans-serif; /* Add a global font family if needed */
+}
+
+a {
+    color: #82AAFF; /* Muted blue color for links */
+}
+
+a:hover {
+    color: #B3E5FC; /* Lighter shade of blue for hover state */
+}
