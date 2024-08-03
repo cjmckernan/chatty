@@ -33,7 +33,10 @@ func HandleCreateUser(c echo.Context) error {
 	})
 }
 
-// Hanndle the conection
+// TODO Implement auth method
+
+// TODO Update method to properly handle websocket sessions
+// Handle the conection
 func HandleWebsocketConn(c echo.Context) error {
 	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {

@@ -25,7 +25,7 @@ func init() {
 	rdb = redis.NewClient(&redis.Options{
 		Addr: host,
 	})
-  validateRedis()
+	validateRedis()
 }
 
 func validateRedis() {
@@ -37,21 +37,29 @@ func validateRedis() {
 	fmt.Println("redis: connected", pong)
 }
 
-func CreateUser(user User) error {
-	ctx := context.Background()
-  userKey := "user:" + user.Username
-  _, err := rdb.HMSet(ctx, userKey, map[string]interface{}{
-    "username": user.Username,
-    "password_hash": user.PasswordHash,
-  }).Result()
-
-  if err !=nil {
-    return fmt.Errorf("Failed to save user %w", err)
-  }
-  return nil
-
+// TODO Implement create session
+func CreateUserSession() error {
+	return nil
 }
 
-func postMessage() {
+// TODO Implement auth
+
+// TODO Publish message
+
+func CreateUser(user User) error {
+	ctx := context.Background()
+	userKey := "user:" + user.Username
+
+	//TODO check if user exists
+
+	_, err := rdb.HMSet(ctx, userKey, map[string]interface{}{
+		"username":      user.Username,
+		"password_hash": user.PasswordHash,
+	}).Result()
+
+	if err != nil {
+		return fmt.Errorf("Failed to save user %w", err)
+	}
+	return nil
 
 }
