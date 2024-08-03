@@ -24,8 +24,8 @@ func main() {
 
 	e.GET("/ws", handlers.HandleWebsocketConn)
 
-  
-  e.POST("/user/create", handlers.HandleCreateUser)
+	e.POST("/auth", handlers.HandlAuth)
+	e.POST("/user/create", handlers.HandleCreateUser)
 
 	e.Logger.Fatal(e.Start(":9009"))
 }
