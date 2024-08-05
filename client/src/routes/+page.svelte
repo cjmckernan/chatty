@@ -98,7 +98,7 @@
 
     function sendMessageToServer(message) {
         if (socket && socket.readyState === WebSocket.OPEN) {
-            socket.send(JSON.stringify({ topic: selectedTopic, sessionId: currentSessionId, username: pageUsername, text: message }));
+            socket.send(JSON.stringify({ topic: selectedTopic, username: pageUsername, text: message }));
         }
     }
 </script>

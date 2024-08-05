@@ -34,7 +34,22 @@ func HandleWebsocketConn(c echo.Context) error {
 	}
 	defer ws.Close()
 
+	// Retrieve the session ID from the query parameters
+	sessionID := c.QueryParam("sessionId")
+	if sessionID == "" {
+		log.Printf("Missing session ID in WebSocket request")
+		return echo.NewHTTPError(http.StatusUnauthorized, "Missing session ID")
+	}
+
+	// Get the username associated with the session ID
+	username, err := message_store.GetUsernameBySessionID(sessionID)
+	if err != nil {
+		log.Printf("Invalid session ID: %v", err)
+		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid session ID")
+	}
+
 	hub.register <- ws
+	hub.clients[ws] = username
 
 	defer func() {
 		hub.unregister <- ws
@@ -47,7 +62,7 @@ func HandleWebsocketConn(c echo.Context) error {
 			return err
 		}
 
-		log.Printf("Received message: %s", string(msg))
+		log.Printf("Received message from %s: %s", username, string(msg))
 
 		var message map[string]string
 		if err := json.Unmarshal(msg, &message); err != nil {
@@ -55,9 +70,17 @@ func HandleWebsocketConn(c echo.Context) error {
 			continue
 		}
 
+		// Validate the username in the message payload
+		if message["username"] != username {
+			log.Printf("Username mismatch: %s (message) != %s (session)", message["username"], username)
+			
+			ws.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.ClosePolicyViolation, "username mismatch"))
+			hub.unregister <- ws
+			closeConn(ws)
+			break 
+    }
+
 		topic := message["topic"]
-		sessionID := message["sessionId"]
-		username := message["username"]
 		text := message["text"]
 
 		// Store the message in Redis
@@ -68,5 +91,7 @@ func HandleWebsocketConn(c echo.Context) error {
 		// Broadcast the received message to all clients
 		hub.broadcast <- msg
 	}
+
+	return nil
 }
 

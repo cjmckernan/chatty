@@ -30,12 +30,10 @@ type User struct {
 }
 
 type Message struct {
-	SessionID string `json:"sessionId"`
 	Username  string `json:"username"`
 	Text      string `json:"text"`
 	Timestamp string `json:"timestamp"`
 }
-
 
 func init() {
 	rdb = redis.NewClient(&redis.Options{
@@ -169,6 +167,11 @@ func GetMessagesByTopic(topic string) ([]Message, error) {
 		return nil, fmt.Errorf("failed to retrieve messages: %w", err)
 	}
 
+	// Return an empty list if there are no messages
+	if len(messagesData) == 0 {
+		return []Message{}, nil
+	}
+
 	var messages []Message
 	for _, messageJSON := range messagesData {
 		var message Message
@@ -180,8 +183,6 @@ func GetMessagesByTopic(topic string) ([]Message, error) {
 
 	return messages, nil
 }
-
-
 
 func CreateUser(user User) (string, error) {
 	ctx := context.Background()
@@ -224,22 +225,21 @@ func GetTopics() ([]string, error) {
 	return topics, nil
 }
 
-func StoreMessage(topic, sessionId, username, text string) error { 
+func StoreMessage(topic, sessionId, username, text string) error {
 	message := Message{
-		SessionID: sessionId,
 		Username:  username,
 		Text:      text,
 		Timestamp: time.Now().UTC().Format(time.RFC3339),
-	 }
-  
-  messageJSON, err := json.Marshal(message)
-  if err != nil {
-    return fmt.Errorf("failed to get message")
-  }
+	}
 
-  topicKey := fmt.Sprintf("topic:%s:messages", topic)
-  if _, err := rdb.RPush(ctx, topicKey, messageJSON).Result(); err != nil {
-    return fmt.Errorf("failed to store %w", err)
-  }
-  return nil
+	messageJSON, err := json.Marshal(message)
+	if err != nil {
+		return fmt.Errorf("failed to get message")
+	}
+
+	topicKey := fmt.Sprintf("topic:%s:messages", topic)
+	if _, err := rdb.RPush(ctx, topicKey, messageJSON).Result(); err != nil {
+		return fmt.Errorf("failed to store %w", err)
+	}
+	return nil
 }

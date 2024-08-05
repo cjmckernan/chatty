@@ -112,7 +112,6 @@ func HandleMessages(c echo.Context) error {
 		})
 	}
 
-	// Return the messages as a JSON response
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"success":  true,
 		"messages": messages,
