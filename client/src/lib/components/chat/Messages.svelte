@@ -1,19 +1,16 @@
 <script>
-    export let messages = [
-        { username: 'Alice', text: 'Hey there! How’s everyone doing?' },
-        { username: 'Bob', text: 'I’m doing great, thanks for asking! How about you?' },
-        { username: 'Charlie', text: 'Just joined the conversation. What’s the topic?' },
-        { username: 'You', text: 'We’re discussing the latest trends in tech.' },
-        { username: 'Alice', text: 'That’s awesome! I’ve been reading a lot about AI lately.' },
-        { username: 'You', text: 'AI is fascinating. It’s amazing how fast things are evolving.' },
-        { username: 'Bob', text: 'Absolutely! The advancements in machine learning are incredible.' }
-    ];
+    import { username } from '$lib/stores/user.js';
+    export let messages = [];
+
+    // Reactive variable to store the current username
+    let currentUser;
+    $: currentUser = $username;
 </script>
 
 <div class="message-screen">
     {#if messages.length > 0}
         {#each messages as message, i}
-            <div class="message {message.username === 'You' ? 'message-own' : ''}">
+            <div class="message {message.username === currentUser ? 'message-own' : ''}">
                 <div class="message-content">
                     <p class="message-text">{message.text}</p>
                     <p class="message-username">{message.username}</p>

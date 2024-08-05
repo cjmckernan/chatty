@@ -4,7 +4,7 @@
 
     function sendMessage() {
         if (newMessage.trim() !== '') {
-            onSendMessage(newMessage);
+            onSendMessage(newMessage); // Calls the function passed from the parent component
             newMessage = '';
         }
     }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"chat-api/handlers"
+	"chat-api/socks"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -20,10 +21,13 @@ func main() {
 	}))
 
 	e.GET("/", handlers.HelloWorldHandler, handlers.ValidateSessionID)
-	e.GET("/ws", handlers.HandleWebsocketConn)
+
+	e.GET("/ws", socks.HandleWebsocketConn, handlers.ValidateSessionID)
 
 	e.POST("/auth", handlers.HandlAuth)
 	e.POST("/user/create", handlers.HandleCreateUser)
+
+	e.GET("/topics", handlers.HandlerGetTopics, handlers.ValidateSessionID)
 
 	e.Logger.Fatal(e.Start(":9009"))
 }

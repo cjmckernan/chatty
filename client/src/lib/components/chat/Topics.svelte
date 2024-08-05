@@ -1,7 +1,45 @@
 <script>
+    import { onMount } from 'svelte';
+    import { sessionId } from '$lib/stores/auth.js';
+
     export let topics = [];
     export let selectedTopic = '';
     export let onSelectTopic = () => {};
+
+    let currentSessionId;
+
+    $: currentSessionId = $sessionId;
+
+    onMount(() => {
+        if (currentSessionId) {
+            fetchTopics();
+        }
+    });
+
+    async function fetchTopics() {
+        try {
+            const res = await fetch('http://localhost:9009/topics', {
+                method: 'GET',
+                headers: {
+                    'X-Session-ID': currentSessionId, 
+                }
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success) {
+                    topics = data.topics;
+                    selectedTopic = topics[0] || ''; 
+                } else {
+                    console.error('Failed to fetch topics:', data.error);
+                }
+            } else {
+                console.error('Failed to fetch topics:', res.statusText);
+            }
+        } catch (error) {
+            console.error('Error fetching topics:', error);
+        }
+    }
 
     function handleSelect(event) {
         onSelectTopic(event.target.value);
@@ -25,7 +63,7 @@
     label {
         display: block;
         margin-bottom: 8px;
-        color: #E0E0E0; /* Light text color */
+        color: #E0E0E0; 
         font-weight: bold;
         font-size: 14px;
     }

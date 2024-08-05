@@ -11,7 +11,8 @@ import (
 )
 
 const (
-	user_table = "user"
+	userKey     = "user"
+	topicSetKey = "topics"
 )
 
 var (
@@ -32,6 +33,15 @@ func init() {
 		Addr: host,
 	})
 	validateRedis()
+	initTopics()
+}
+
+func initTopics() {
+	topics := []string{"General", "Sports", "Technology", "Movies", "Music"}
+
+	for _, topic := range topics {
+		rdb.SAdd(ctx, topicSetKey, topic)
+	}
 }
 
 func validateRedis() {
@@ -173,7 +183,15 @@ func GetUsernameBySessionID(sessionID string) (string, error) {
 		return "", fmt.Errorf("session not found")
 	}
 	username := sessionData["username"]
-  fmt.Println(username)
+	fmt.Println(username)
 
 	return username, nil
+}
+
+func GetTopics() ([]string, error) {
+	topics, err := rdb.SMembers(ctx, topicSetKey).Result()
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve topics: %w", err)
+	}
+	return topics, nil
 }

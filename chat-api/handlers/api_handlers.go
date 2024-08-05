@@ -4,18 +4,11 @@ import (
 	"chat-api/message_store"
 	"chat-api/utils"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
-	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 )
-
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-}
 
 type UserRequest struct {
 	Username        string `json:"username"`
@@ -110,30 +103,25 @@ func HandlAuth(c echo.Context) error {
 	})
 }
 
-// TODO Update method to properly handle websocket sessions
-// Handle the conection
-func HandleWebsocketConn(c echo.Context) error {
-	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
-	if err != nil {
-		log.Printf("Error forming websocket connection")
-		return err
-	}
-	defer ws.Close()
-	for {
-		_, msg, err := ws.ReadMessage()
-		if err != nil {
-			log.Printf("Error reading message")
-			return nil
-		}
-		log.Printf(string(msg))
-		break
-	}
-	return nil
-}
 func HelloWorldHandler(c echo.Context) error {
 
 	response := map[string]string{
 		"message": "Hello ",
 	}
 	return c.JSON(http.StatusOK, response)
+}
+
+func HandlerGetTopics(c echo.Context) error {
+	topics, err := message_store.GetTopics()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "failed to retrieve topics",
+		})
+	}
+
+	// Return the topics as a JSON array
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"success": true,
+		"topics":  topics,
+	})
 }
