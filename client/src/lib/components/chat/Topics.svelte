@@ -29,7 +29,8 @@
                 const data = await res.json();
                 if (data.success) {
                     topics = data.topics;
-                    selectedTopic = topics[0] || ''; 
+                    selectedTopic = topics[0] || ''; // Set default selected topic
+                    onSelectTopic(selectedTopic); // Fetch messages for the default topic
                 } else {
                     console.error('Failed to fetch topics:', data.error);
                 }
@@ -42,7 +43,8 @@
     }
 
     function handleSelect(event) {
-        onSelectTopic(event.target.value);
+        selectedTopic = event.target.value;
+        onSelectTopic(selectedTopic);
     }
 </script>
 

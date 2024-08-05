@@ -78,7 +78,6 @@ func HandleCreateUser(c echo.Context) error {
 	})
 }
 
-// TODO Add check for existing sessionID
 func HandlAuth(c echo.Context) error {
 	userRequest := new(UserRequest)
 
@@ -100,6 +99,23 @@ func HandlAuth(c echo.Context) error {
 	c.Response().Header().Set("X-Session-ID", sessionID)
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"success": "true",
+	})
+}
+
+func HandleMessages(c echo.Context) error {
+	topic := c.Param("topic")
+
+	messages, err := message_store.GetMessagesByTopic(topic)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "failed to retrieve messages",
+		})
+	}
+
+	// Return the messages as a JSON response
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"success":  true,
+		"messages": messages,
 	})
 }
 

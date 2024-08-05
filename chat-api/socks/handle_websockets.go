@@ -1,6 +1,8 @@
 package socks
 
 import (
+	"chat-api/message_store"
+	"encoding/json"
 	"log"
 	"net/http"
 
@@ -24,9 +26,7 @@ func init() {
 	go hub.Run() // Start the Hub to manage WebSocket connections
 }
 
-// HandleWebsocketConn handles WebSocket connections
 func HandleWebsocketConn(c echo.Context) error {
-	// Upgrade HTTP to WebSocket protocol
 	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
 		log.Printf("Error upgrading to WebSocket: %v", err)
@@ -34,10 +34,10 @@ func HandleWebsocketConn(c echo.Context) error {
 	}
 	defer ws.Close()
 
-	hub.register <- ws // Register the new client
+	hub.register <- ws
 
 	defer func() {
-		hub.unregister <- ws // Unregister when connection is closed
+		hub.unregister <- ws
 	}()
 
 	for {
@@ -48,6 +48,22 @@ func HandleWebsocketConn(c echo.Context) error {
 		}
 
 		log.Printf("Received message: %s", string(msg))
+
+		var message map[string]string
+		if err := json.Unmarshal(msg, &message); err != nil {
+			log.Printf("Error unmarshaling WebSocket message: %v", err)
+			continue
+		}
+
+		topic := message["topic"]
+		sessionID := message["sessionId"]
+		username := message["username"]
+		text := message["text"]
+
+		// Store the message in Redis
+		if err := message_store.StoreMessage(topic, sessionID, username, text); err != nil {
+			log.Printf("Error storing message: %v", err)
+		}
 
 		// Broadcast the received message to all clients
 		hub.broadcast <- msg

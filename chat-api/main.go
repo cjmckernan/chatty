@@ -21,13 +21,20 @@ func main() {
 	}))
 
 	e.GET("/", handlers.HelloWorldHandler, handlers.ValidateSessionID)
-
+  //Websockets endpoints 
 	e.GET("/ws", socks.HandleWebsocketConn, handlers.ValidateSessionID)
 
+
+  // User Endpoints 
 	e.POST("/auth", handlers.HandlAuth)
 	e.POST("/user/create", handlers.HandleCreateUser)
 
 	e.GET("/topics", handlers.HandlerGetTopics, handlers.ValidateSessionID)
+ 
+
+  // Messages endpoints 
+  e.GET("/messages/:topic", handlers.HandleMessages, handlers.ValidateSessionID)
+
 
 	e.Logger.Fatal(e.Start(":9009"))
 }

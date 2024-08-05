@@ -58,8 +58,8 @@
         socket.onmessage = (event) => {
             console.log('Message from server:', event.data);
             const message = JSON.parse(event.data);
-            messages = [...messages, message]; 
-      };
+            messages = [...messages, message]; // Update messages array
+        };
 
         socket.onclose = () => {
             console.log('WebSocket connection closed');
@@ -70,9 +70,35 @@
         };
     }
 
+    async function fetchMessagesByTopic(topic) {
+        try {
+            const res = await fetch(`http://localhost:9009/messages/${topic}`, {
+                method: 'GET',
+                headers: {
+                    'X-Session-ID': currentSessionId,
+                }
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                messages = data.messages; // Update the messages list with fetched messages
+            } else {
+                console.error('Failed to fetch messages:', res.statusText);
+            }
+        } catch (error) {
+            console.error('Error fetching messages:', error);
+        }
+    }
+
+    function onSelectTopic(topic) {
+        selectedTopic = topic;
+        messages = []; // Clear messages when topic changes
+        fetchMessagesByTopic(topic);
+    }
+
     function sendMessageToServer(message) {
         if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({ sessionId: currentSessionId, username: pageUsername, text: message }));
+            socket.send(JSON.stringify({ topic: selectedTopic, sessionId: currentSessionId, username: pageUsername, text: message }));
         }
     }
 </script>
@@ -81,7 +107,7 @@
   <Header />
   {#if currentSessionId}
     <div class="container">
-      <Topics bind:selectedTopic />
+      <Topics bind:selectedTopic onSelectTopic={onSelectTopic} />
       <Messages {messages} />
       <MessageInput onSendMessage={sendMessageToServer} /> 
     </div>
