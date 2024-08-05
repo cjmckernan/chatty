@@ -1,6 +1,11 @@
 
 <script>
     import Header from '$lib/components/layout/Header.svelte';
+
+    import Messages from '$lib/components/chat/Messages.svelte'
+    import Topics from '$lib/components/chat/Topics.svelte'
+    import MessageInput from '$lib/components/chat/MessageInput.svelte'
+
     import { sessionId } from '$lib/stores/auth.js';
     import { username, setUsername } from '$lib/stores/user.js';  
 
@@ -44,8 +49,12 @@
 
 <div>
   <Header />
-  {#if response}
-    <p>{response.message} {pageUsername}</p>
+  {#if currentSessionId}
+    <div class="container">
+      <Topics />
+      <Messages />
+      <MessageInput />
+    </div>
   {/if}
 </div>
 
