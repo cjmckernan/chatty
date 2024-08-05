@@ -15,6 +15,11 @@ func main() {
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORS())
 
+  e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+    AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, "X-Session-ID"},
+    ExposeHeaders: []string{"X-Session-ID"}, 
+  }))
+
 	e.GET("/", func(c echo.Context) error {
 		response := map[string]string{
 			"message": "Hello World!",

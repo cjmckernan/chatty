@@ -61,22 +61,31 @@ func getUser(username string) (*User, error) {
 }
 
 func storeSessionId(sessionID, username string) error {
-  sessionKey := "session:" + sessionID
-  _, err := rdb.HMSet(ctx, sessionKey, map[string]interface{}{
-    "username": username,
-    "created_at": time.Now().UTC().Format(time.RFC3339),
-  }).Result()
+	sessionKey := "session:" + sessionID
+	_, err := rdb.HMSet(ctx, sessionKey, map[string]interface{}{
+		"username":   username,
+		"created_at": time.Now().UTC().Format(time.RFC3339),
+	}).Result()
 
-  if err !=nil { 
-    return fmt.Errorf("failed to store session %w", err)
-  }
-  userSessionsKey := "user_sessions:" + username
+	if err != nil {
+		return fmt.Errorf("failed to store session %w", err)
+	}
+	userSessionsKey := "user_sessions:" + username
 	_, err = rdb.SAdd(ctx, userSessionsKey, sessionID).Result()
 	if err != nil {
 		return fmt.Errorf("failed to link session to user: %w", err)
 	}
 
-  return nil
+	return nil
+}
+
+func createUserSessionID(username string) (string, error) {
+	sessionID, err := utils.GenerateSessionId()
+	err = storeSessionId(sessionID, username)
+	if err != nil {
+		return "", fmt.Errorf("error storing sessionId")
+	}
+	return sessionID, nil
 }
 
 func UserExists(username string) (bool, error) {
@@ -99,22 +108,16 @@ func Auth(username string, password string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("invalid password")
 	}
-  sessionID, err:= utils.GenerateSessionId()
-  if err != nil {
-    return "", fmt.Errorf("error generating sessionID")
-  }
-  // TODO store sessionID
-  err = storeSessionId(sessionID, username)
-  if err != nil { 
-    return "", fmt.Errorf("error storing sessionId")
-  }
-
+	sessionID, err := createUserSessionID(username)
+	if err != nil {
+		return "", fmt.Errorf("Error creating sessionID %w", err)
+	}
 	return sessionID, nil
 }
 
 // TODO Publish message
 
-func CreateUser(user User) error {
+func CreateUser(user User) (string, error) {
 	ctx := context.Background()
 	userKey := "user:" + user.Username
 
@@ -124,7 +127,13 @@ func CreateUser(user User) error {
 	}).Result()
 
 	if err != nil {
-		return fmt.Errorf("Failed to save user %w", err)
+		return "", fmt.Errorf("Failed to save user %w", err)
 	}
-	return nil
+
+	sessionID, err := createUserSessionID(user.Username)
+	if err != nil {
+		return "", fmt.Errorf("Error creating sessionID %w", err)
+	}
+
+	return sessionID, nil
 }

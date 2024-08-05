@@ -3,6 +3,7 @@ package handlers
 import (
 	"chat-api/message_store"
 	"chat-api/utils"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -69,14 +70,14 @@ func HandleCreateUser(c echo.Context) error {
 		UpdatedAt:    time.Now().UTC(),
 	}
 
-	err = message_store.CreateUser(user)
+  sessionID, err := message_store.CreateUser(user)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error":   "failed to create user",
 			"success": "false",
 		})
 	}
-
+  c.Response().Header().Set("X-Session-ID", sessionID) 
 	return c.JSON(http.StatusCreated, map[string]interface{}{
 		"success":    "true",
 		"username":   user.Username,
@@ -85,7 +86,7 @@ func HandleCreateUser(c echo.Context) error {
 	})
 }
 
-// TODO Add check for existing sessionID 
+// TODO Add check for existing sessionID
 func HandlAuth(c echo.Context) error {
 	userRequest := new(UserRequest)
 
@@ -103,7 +104,8 @@ func HandlAuth(c echo.Context) error {
 			"error":   err.Error(),
 		})
 	}
-  c.Response().Header().Set("X-Session-ID", sessionID)
+	fmt.Printf(sessionID)
+	c.Response().Header().Set("X-Session-ID", sessionID)
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"success": "true",
 	})

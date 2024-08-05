@@ -1,4 +1,5 @@
 <script>
+    import Header from '$lib/components/layout/Header.svelte'
     import { onMount } from 'svelte';
     let response;
 
@@ -22,6 +23,7 @@
 </script>
 
 <div>
+  <Header />
   {#if response}
     <p>{response.message}</p>
   {/if}
