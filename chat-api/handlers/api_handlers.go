@@ -130,3 +130,10 @@ func HandleWebsocketConn(c echo.Context) error {
 	}
 	return nil
 }
+func HelloWorldHandler(c echo.Context) error {
+
+	response := map[string]string{
+		"message": "Hello ",
+	}
+	return c.JSON(http.StatusOK, response)
+}

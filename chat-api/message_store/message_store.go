@@ -114,7 +114,6 @@ func storeSessionId(sessionID, username string) error {
 	return nil
 }
 
-
 func UserExists(username string) (bool, error) {
 	userKey := "user:" + username
 	exists, err := rdb.Exists(ctx, userKey).Result()
@@ -165,4 +164,16 @@ func CreateUser(user User) (string, error) {
 	}
 
 	return sessionID, nil
+}
+
+func GetUsernameBySessionID(sessionID string) (string, error) {
+	sessionKey := "session:" + sessionID
+	sessionData, err := rdb.HGetAll(ctx, sessionKey).Result()
+	if err != nil || len(sessionData) == 0 {
+		return "", fmt.Errorf("session not found")
+	}
+	username := sessionData["username"]
+  fmt.Println(username)
+
+	return username, nil
 }

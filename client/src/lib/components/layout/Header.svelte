@@ -2,18 +2,21 @@
   import Signin from '$lib/components/forms/auth/Signin.svelte';
   import Signup from '$lib/components/forms/auth/Signup.svelte';
   import { sessionId, destroySessionId } from '$lib/stores/auth.js';
-
+  import { username, setUsername } from '$lib/stores/user.js';  
 
   import { onDestroy } from 'svelte'
   let showSignin = false;
   let showSignup = false;
-  let currentSessionId;
 
+  let currentSessionId;
+  let pageUsername;
+
+  $: pageUsername = $username
   $: currentSessionId = $sessionId;
   
   $: { 
-    console.log(currentSessionId)
   }
+
   const closeModal = () => {
     showSignin = false;
     showSignup = false;
@@ -44,6 +47,9 @@
           <a class="nav-link active" aria-current="page" href="#" on:click={() => (showSignup = true)}>Sign Up</a>
         </li>
         {:else}
+          <li>
+            <a class="nav-link active" aria-current="page" href="#" >{pageUsername}</a>
+          </li>
           <li class="nav-item">
             <a class="nav-link active" aria-current="page" href="#" on:click={destroySession}>Logout</a>
           </li>
