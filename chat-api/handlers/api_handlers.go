@@ -23,7 +23,6 @@ type UserRequest struct {
 	PasswordConfirm string `json:"passwordConfirm"`
 }
 
-// Create the user information
 func HandleCreateUser(c echo.Context) error {
 	userRequest := new(UserRequest)
 
@@ -70,14 +69,14 @@ func HandleCreateUser(c echo.Context) error {
 		UpdatedAt:    time.Now().UTC(),
 	}
 
-  sessionID, err := message_store.CreateUser(user)
+	sessionID, err := message_store.CreateUser(user)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error":   "failed to create user",
 			"success": "false",
 		})
 	}
-  c.Response().Header().Set("X-Session-ID", sessionID) 
+	c.Response().Header().Set("X-Session-ID", sessionID)
 	return c.JSON(http.StatusCreated, map[string]interface{}{
 		"success":    "true",
 		"username":   user.Username,

@@ -8,6 +8,8 @@
   let errorMessage = '';
 
   const handleSubmit = async () => {
+    errorMessage = ''; // Reset error message
+
     try {
       const response = await fetch('http://localhost:9009/user/create', {
         method: 'POST',
@@ -18,17 +20,32 @@
       });
 
       if (response.ok) {
-        const data = await response.json();
         const sessionId = response.headers.get('X-Session-ID');
         setSessionId(sessionId); 
         closeModal(); 
       } else {
         const errorData = await response.json();
-        errorMessage = errorData.error || 'Account creation failed';
+        handleErrors(response.status, errorData);
       }
     } catch (error) {
       console.error('Error:', error);
-      errorMessage = 'An error occurred. Please try again.';
+      errorMessage = 'An unexpected error occurred. Please try again later.';
+    }
+  };
+
+  const handleErrors = (status, errorData) => {
+    switch (status) {
+      case 400:
+        errorMessage = errorData.error || 'Invalid request. Please check your input.';
+        break;
+      case 409:
+        errorMessage = errorData.error || 'This username is already taken. Please choose another one.';
+        break;
+      case 500:
+        errorMessage = 'An internal server error occurred. Please try again later.';
+        break;
+      default:
+        errorMessage = 'An unexpected error occurred. Please try again later.';
     }
   };
 </script>
@@ -46,9 +63,12 @@
         <input id="password" type="password" bind:value={password} required />
       </div>
       <div class="form-group">
-        <label for="password-Confirm">Confirm Password</label>
-        <input id="password-Confirm" type="password" bind:value={passwordConfirm} required />
+        <label for="passwordConfirm">Confirm Password</label>
+        <input id="passwordConfirm" type="password" bind:value={passwordConfirm} required />
       </div>
+      {#if errorMessage}
+        <div class="error-message">{errorMessage}</div>
+      {/if}
       <button type="submit">Sign Up</button>
     </form>
     <button on:click={closeModal} class="close-button">Close</button>
@@ -74,7 +94,7 @@
     border-radius: 8px;
     color: #E0E0E0;
     width: 90%;
-    max-width: 400px; /* Set the maximum width of the modal */
+    max-width: 400px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   }
 
@@ -92,6 +112,12 @@
     padding: 8px;
     border: none;
     border-radius: 4px;
+  }
+
+  .error-message {
+    color: red;
+    margin-top: 10px;
+    font-size: 0.9rem;
   }
 
   button {

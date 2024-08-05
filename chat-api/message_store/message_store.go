@@ -60,6 +60,41 @@ func getUser(username string) (*User, error) {
 	return user, nil
 }
 
+func createUserSessionID(username string) (string, error) {
+
+	existingSessionID, err := getSessionIDByUsername(username)
+	if err != nil {
+		return "", err
+	}
+	if existingSessionID != "" {
+		return existingSessionID, nil
+	}
+
+	sessionID, err := utils.GenerateSessionId()
+	err = storeSessionId(sessionID, username)
+	if err != nil {
+		return "", fmt.Errorf("error storing sessionId")
+	}
+
+	err = storeSessionId(sessionID, username)
+	if err != nil {
+		return "", fmt.Errorf("error storing sessionId: %w", err)
+	}
+	return sessionID, nil
+}
+
+func getSessionIDByUsername(username string) (string, error) {
+	userSessionsKey := "user_sessions:" + username
+	sessionIDs, err := rdb.SMembers(ctx, userSessionsKey).Result()
+	if err != nil {
+		return "", fmt.Errorf("failed to retrieve sessions for user: %w", err)
+	}
+	if len(sessionIDs) > 0 {
+		return sessionIDs[0], nil
+	}
+	return "", nil
+}
+
 func storeSessionId(sessionID, username string) error {
 	sessionKey := "session:" + sessionID
 	_, err := rdb.HMSet(ctx, sessionKey, map[string]interface{}{
@@ -79,14 +114,6 @@ func storeSessionId(sessionID, username string) error {
 	return nil
 }
 
-func createUserSessionID(username string) (string, error) {
-	sessionID, err := utils.GenerateSessionId()
-	err = storeSessionId(sessionID, username)
-	if err != nil {
-		return "", fmt.Errorf("error storing sessionId")
-	}
-	return sessionID, nil
-}
 
 func UserExists(username string) (bool, error) {
 	userKey := "user:" + username
@@ -108,11 +135,13 @@ func Auth(username string, password string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("invalid password")
 	}
+
 	sessionID, err := createUserSessionID(username)
 	if err != nil {
-		return "", fmt.Errorf("Error creating sessionID %w", err)
+		return "", fmt.Errorf("error creating sessionID: %w", err)
 	}
 	return sessionID, nil
+
 }
 
 // TODO Publish message
