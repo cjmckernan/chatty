@@ -118,10 +118,10 @@ func HandleMessages(c echo.Context) error {
 	})
 }
 
-func HelloWorldHandler(c echo.Context) error {
+func Ping(c echo.Context) error {
 
 	response := map[string]string{
-		"message": "Hello ",
+		"message": "pong ",
 	}
 	return c.JSON(http.StatusOK, response)
 }

@@ -20,7 +20,7 @@ func main() {
 		ExposeHeaders: []string{"X-Session-ID", "X-User-Name"},
 	}))
 
-	e.GET("/", handlers.HelloWorldHandler, handlers.ValidateSessionID)
+	e.GET("/ping", handlers.Ping, handlers.ValidateSessionID)
 
 	//Websockets endpoints
 	e.GET("/ws", socks.HandleWebsocketConn, handlers.ValidateSessionID)

@@ -14,19 +14,19 @@
     let messages = []; 
     let selectedTopic = ''; 
     $: currentSessionId = $sessionId;
-     
+
+    // Only run this function once to connect WebSocket when session ID is available
     $: {
-        if (currentSessionId) {
-            testRequest();
+        if (currentSessionId && !socket) {
+            testRequest(); 
             connectWebSocket();
         }
     }
 
     $: pageUsername = $username;
-
     async function testRequest() {
         try {
-            const res = await fetch('http://localhost:9009/', {
+            const res = await fetch('http://localhost:9009/ping', {
                 method: 'GET',
                 headers: {
                     'X-Session-ID': currentSessionId, // Add the session ID to the headers
@@ -58,11 +58,15 @@
         socket.onmessage = (event) => {
             console.log('Message from server:', event.data);
             const message = JSON.parse(event.data);
-            messages = [...messages, message]; // Update messages array
+            // Only append new messages to the current topic
+            if (message.topic === selectedTopic) {
+                messages = [...messages, message]; // Append new message to the messages array
+            }
         };
 
         socket.onclose = () => {
             console.log('WebSocket connection closed');
+            socket = null; // Reset socket to allow reconnecting if needed
         };
 
         socket.onerror = (error) => {
@@ -92,8 +96,7 @@
 
     function onSelectTopic(topic) {
         selectedTopic = topic;
-        messages = []; // Clear messages when topic changes
-        fetchMessagesByTopic(topic);
+        fetchMessagesByTopic(topic); // Fetch messages only once when the topic is selected
     }
 
     function sendMessageToServer(message) {
