@@ -1,8 +1,11 @@
 package socks
 
 import (
-	"github.com/gorilla/websocket"
+	"chat-api/message_store"
+	"encoding/json"
 	"log"
+
+	"github.com/gorilla/websocket"
 )
 
 type Hub struct {
@@ -52,7 +55,21 @@ func (h *Hub) Run() {
 	}
 }
 
+func (h *Hub) SubscribeToResidChannel(topic string) {
+	pubsub := message_store.SubscribeToTopic(topic)
+	go func() {
+		ch := pubsub.Channel()
+		for msg := range ch {
+			var message message_store.Message
+			if err := json.Unmarshal([]byte(msg.Payload), &message); err != nil {
+				log.Printf("Error processing message %w", err)
+				continue
+			}
+			h.broadcast <- []byte(msg.Payload)
+		}
+	}()
+}
+
 func closeConn(conn *websocket.Conn) {
 	conn.Close()
 }
-

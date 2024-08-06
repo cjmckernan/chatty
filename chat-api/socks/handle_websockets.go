@@ -55,6 +55,9 @@ func HandleWebsocketConn(c echo.Context) error {
 		hub.unregister <- ws
 	}()
 
+  topic := "General"
+  hub.SubscribeToResidChannel(topic)
+
 	for {
 		_, msg, err := ws.ReadMessage()
 		if err != nil {
@@ -71,20 +74,18 @@ func HandleWebsocketConn(c echo.Context) error {
 		}
 
 		// Validate the username in the message payload
-		if message["username"] != username {
+    if message["username"] != username {
 			log.Printf("Username mismatch: %s (message) != %s (session)", message["username"], username)
-			
 			ws.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.ClosePolicyViolation, "username mismatch"))
 			hub.unregister <- ws
 			closeConn(ws)
-			break 
-    }
-
+			break
+		}
 		topic := message["topic"]
 		text := message["text"]
 
 		// Store the message in Redis
-		if err := message_store.StoreMessage(topic, sessionID, username, text); err != nil {
+		if err := message_store.StoreMessage(topic, username, text); err != nil {
 			log.Printf("Error storing message: %v", err)
 		}
 

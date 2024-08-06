@@ -225,7 +225,7 @@ func GetTopics() ([]string, error) {
 	return topics, nil
 }
 
-func StoreMessage(topic, sessionId, username, text string) error {
+func StoreMessage(topic, username, text string) error {
 	message := Message{
 		Username:  username,
 		Text:      text,
@@ -234,12 +234,25 @@ func StoreMessage(topic, sessionId, username, text string) error {
 
 	messageJSON, err := json.Marshal(message)
 	if err != nil {
-		return fmt.Errorf("failed to get message")
+		return fmt.Errorf("failed to marshal message: %w", err)
 	}
 
+	// Store the message in the Redis list for persistence
 	topicKey := fmt.Sprintf("topic:%s:messages", topic)
 	if _, err := rdb.RPush(ctx, topicKey, messageJSON).Result(); err != nil {
-		return fmt.Errorf("failed to store %w", err)
+		return fmt.Errorf("failed to store message: %w", err)
 	}
+
+	// Publish the message to the Redis channel for real-time broadcasting
+	channel := fmt.Sprintf("topic:%s:channel", topic)
+	if err := rdb.Publish(ctx, channel, messageJSON).Err(); err != nil {
+		return fmt.Errorf("failed to publish message: %w", err)
+	}
+
 	return nil
+}
+
+func SubscribeToTopic(topic string) *redis.PubSub {
+	channel := fmt.Sprintf("topic:%s:channel", topic)
+	return rdb.Subscribe(ctx, channel)
 }
