@@ -1,0 +1,13 @@
+arguments=--init-script /home/bitwave/.cache/nvim/jdtls/app/config/org.eclipse.osgi/167/0/.cp/gradle/init/init.gradle
+auto.sync=false
+build.scans.enabled=false
+connection.gradle.distribution=GRADLE_DISTRIBUTION(LOCAL_INSTALLATION(/home/bitwave/.sdkman/candidates/gradle/current))
+connection.project.dir=
+eclipse.preferences.version=1
+gradle.user.home=
+java.home=/home/bitwave/.sdkman/candidates/java/21.0.4-tem
+jvm.arguments=
+offline.mode=false
+override.workspace.settings=true
+show.console.view=true
+show.executions.view=true
